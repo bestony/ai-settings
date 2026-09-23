@@ -13,7 +13,7 @@ namespace AISettings\Admin;
 use AISettings\Config\Collection;
 use AISettings\Config\Collector;
 use AISettings\Config\Field;
-use AISettings\Config\Module;
+use AISettings\Config\Model_Catalog;
 use AISettings\Config\Section;
 use AISettings\Config\Writer;
 use AISettings\Plugin;
@@ -64,6 +64,34 @@ final class Settings_Page
     public const MODEL_ACTION = 'ai_settings_bulk_model';
 
     /**
+     * The query argument and form field that names the visible tab.
+     *
+     * @var string
+     */
+    public const TAB_ARG = 'tab';
+
+    /**
+     * The tab holding the master switch and the bulk switches.
+     *
+     * @var string
+     */
+    public const TAB_GENERAL = 'general';
+
+    /**
+     * The tab holding the per-feature provider and model overrides.
+     *
+     * @var string
+     */
+    public const TAB_MODELS = 'models';
+
+    /**
+     * The tab holding the import and export controls.
+     *
+     * @var string
+     */
+    public const TAB_EXPORT = 'import-export';
+
+    /**
      * The value of the provider dropdown that leaves a feature's provider untouched.
      *
      * @var string
@@ -103,7 +131,7 @@ final class Settings_Page
     {
         add_action('admin_menu', array($this, 'add_page'));
         add_action('admin_init', array($this, 'register_fields'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_styles'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
         add_action('admin_post_' . self::SAVE_ACTION, array($this, 'handle_save'));
         add_action('admin_post_' . self::BULK_ACTION, array($this, 'handle_bulk'));
         add_action('admin_post_' . self::MODEL_ACTION, array($this, 'handle_bulk_model'));
@@ -149,7 +177,9 @@ final class Settings_Page
     /**
      * Declares a Settings API section and field for everything the collector found.
      *
-     * These are used for rendering only; saving goes through {@see self::handle_save()}.
+     * Each section is filed under its tab's own page id, because `do_settings_sections()` renders
+     * every section registered for a page and offers no way to render a single section. These are
+     * used for rendering only; saving goes through {@see self::handle_save()}.
      *
      * @return void
      */
@@ -159,26 +189,12 @@ final class Settings_Page
             return;
         }
 
-        $collection     = $this->plugin->collector()->collect();
-        $current_module = null;
+        $collection   = $this->plugin->collector()->collect();
+        $section_tabs = array();
 
         foreach ($collection->sections() as $section) {
-            // A heading for each module, registered ahead of the sections filed under it.
-            if ($section->module() !== $current_module) {
-                $current_module = $section->module();
-                $module         = $collection->module($current_module);
-
-                if (null !== $module) {
-                    add_settings_section(
-                        'ai-settings-module-' . $module->id(),
-                        '',
-                        function () use ($module): void {
-                            $this->render_module_intro($module);
-                        },
-                        self::PAGE_SLUG
-                    );
-                }
-            }
+            $tab                          = $this->tab_of($section);
+            $section_tabs[$section->id()] = $tab;
 
             add_settings_section(
                 $section->id(),
@@ -186,7 +202,7 @@ final class Settings_Page
                 function () use ($section): void {
                     $this->render_section_intro($section);
                 },
-                self::PAGE_SLUG
+                $this->tab_page($tab)
             );
         }
 
@@ -203,19 +219,19 @@ final class Settings_Page
                 function () use ($field): void {
                     $this->render_field($field);
                 },
-                self::PAGE_SLUG,
+                $this->tab_page($section_tabs[$field->section()]),
                 $field->section()
             );
         }
     }
 
     /**
-     * Adds the screen's own styles, on this screen only.
+     * Adds the screen's own styles and script, on this screen only.
      *
      * @param string $hook_suffix The current admin page.
      * @return void
      */
-    public function enqueue_styles($hook_suffix): void
+    public function enqueue_assets($hook_suffix): void
     {
         if ('settings_page_' . self::PAGE_SLUG !== $hook_suffix) {
             return;
@@ -225,14 +241,199 @@ final class Settings_Page
         wp_enqueue_style('ai-settings');
         wp_add_inline_style(
             'ai-settings',
-            '.ai-settings-module{margin:2em 0 .2em;padding-bottom:.3em;border-bottom:1px solid #c3c4c7;font-size:1.15em}'
-            . '.ai-settings-module-description{margin:.2em 0 1em;color:#646970}'
+            '.ai-settings-module-description{margin:1em 0 .5em;color:#646970}'
             . '.ai-settings-model-bulk{margin:1em 0;padding:1em;background:#fff;border:1px solid #c3c4c7}'
             . '.ai-settings-model-bulk label{margin-right:.3em}'
             . '.ai-settings-scope{margin-left:1em}'
             . '.ai-settings-model-table{margin-top:1em}'
             . '.ai-settings-model-table .ai-settings-model-module td{background:#f0f0f1;font-weight:600}'
+            . '.ai-settings-model-picker{min-width:12em;max-width:25em;vertical-align:middle}'
+            . '.ai-settings-model-picker+input{margin-left:.5em}'
         );
+
+        wp_enqueue_script(
+            'ai-settings-models',
+            plugins_url('assets/models.js', AISETTINGS_PLUGIN_FILE),
+            array(),
+            AISETTINGS_VERSION,
+            true
+        );
+    }
+
+    /**
+     * Builds the tab list: the tab ids, and the labels shown on the tab bar.
+     *
+     * One tab per module, preceded by the master switch and followed by the model overrides and the
+     * import and export controls. The module order is the collector's, and only modules holding at
+     * least one section are offered, so no tab is ever empty.
+     *
+     * @param Collection $collection The collected configuration.
+     * @return array<string, string> The tab labels, keyed by tab id.
+     */
+    private function tabs(Collection $collection): array
+    {
+        $tabs = array(self::TAB_GENERAL => __('General', 'ai-settings'));
+
+        foreach ($collection->modules() as $id => $module) {
+            $tabs[$id] = $module->label();
+        }
+
+        $tabs[self::TAB_MODELS] = __('Models', 'ai-settings');
+        $tabs[self::TAB_EXPORT] = __('Import and export', 'ai-settings');
+
+        return $tabs;
+    }
+
+    /**
+     * Builds the tab list for the post handlers, where no collection is at hand.
+     *
+     * @return array<string, string> The tab labels, keyed by tab id, or an empty array when the AI
+     *                               plugin is not providing any options.
+     */
+    private function tab_list(): array
+    {
+        if (!$this->plugin->collector()->is_available()) {
+            return array();
+        }
+
+        return $this->tabs($this->plugin->collector()->collect());
+    }
+
+    /**
+     * Gets the tab a section belongs to.
+     *
+     * @param Section $section The section.
+     * @return string The tab id.
+     */
+    private function tab_of(Section $section): string
+    {
+        return '' === $section->module() ? self::TAB_GENERAL : $section->module();
+    }
+
+    /**
+     * Gets the Settings API page id a tab's sections are registered under.
+     *
+     * `do_settings_sections()` renders every section registered for one page, so each tab is given
+     * its own page id and renders only the sections filed under it.
+     *
+     * @param string $tab The tab id.
+     * @return string The page id.
+     */
+    private function tab_page(string $tab): string
+    {
+        return self::PAGE_SLUG . '-' . $tab;
+    }
+
+    /**
+     * Resolves the tab to show, falling back to the first one.
+     *
+     * @param array<string, string> $tabs The tab labels, keyed by tab id.
+     * @return string The tab id.
+     */
+    private function current_tab(array $tabs): string
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reading which tab to show.
+        $tab = isset($_GET[self::TAB_ARG]) ? sanitize_key(wp_unslash($_GET[self::TAB_ARG])) : '';
+
+        return isset($tabs[$tab]) ? $tab : self::TAB_GENERAL;
+    }
+
+    /**
+     * Resolves the tab a form was submitted from, so the result shows on the same screen.
+     *
+     * @param array<string, string> $tabs The tab labels, keyed by tab id.
+     * @return string The tab id, or an empty string when none was submitted.
+     */
+    private function posted_tab(array $tabs): string
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- the nonce is checked by the handler.
+        $tab = isset($_POST[self::TAB_ARG]) ? sanitize_key(wp_unslash($_POST[self::TAB_ARG])) : '';
+
+        return isset($tabs[$tab]) ? $tab : '';
+    }
+
+    /**
+     * Renders a tab's form.
+     *
+     * Only the sections registered under the tab's page id are output, so saving a tab submits that
+     * tab's options alone — the writer ignores everything else.
+     *
+     * @param string $tab The tab id.
+     * @return void
+     */
+    private function render_form(string $tab): void
+    {
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+        printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::SAVE_ACTION));
+        printf('<input type="hidden" name="%s" value="%s" />', esc_attr(self::TAB_ARG), esc_attr($tab));
+        wp_nonce_field(self::SAVE_ACTION);
+
+        do_settings_sections($this->tab_page($tab));
+
+        submit_button(__('Save settings', 'ai-settings'));
+
+        echo '</form>';
+    }
+
+    /**
+     * Renders the tab bar.
+     *
+     * @param array<string, string> $tabs   The tab labels, keyed by tab id.
+     * @param string                $active The active tab id.
+     * @return void
+     */
+    private function render_tabs(array $tabs, string $active): void
+    {
+        printf(
+            '<nav class="nav-tab-wrapper wp-clearfix" aria-label="%s">',
+            esc_attr__('Secondary menu', 'ai-settings')
+        );
+
+        foreach ($tabs as $id => $label) {
+            $is_active = $id === $active;
+
+            printf(
+                '<a href="%s" class="nav-tab%s"%s>%s</a>',
+                esc_url(add_query_arg(self::TAB_ARG, $id, $this->page_url())),
+                $is_active ? ' nav-tab-active' : '',
+                $is_active ? ' aria-current="page"' : '',
+                esc_html($label)
+            );
+        }
+
+        echo '</nav>';
+    }
+
+    /**
+     * Renders the master switch and the bulk switches.
+     *
+     * @return void
+     */
+    private function render_general_tab(): void
+    {
+        $this->render_toolbar(self::TAB_GENERAL);
+        $this->render_form(self::TAB_GENERAL);
+    }
+
+    /**
+     * Renders the sections of one module.
+     *
+     * @param Collection $collection The collected configuration.
+     * @param string     $module_id  The module id.
+     * @return void
+     */
+    private function render_module_tab(Collection $collection, string $module_id): void
+    {
+        $module = $collection->module($module_id);
+
+        if (null !== $module && '' !== $module->description()) {
+            printf(
+                '<p class="ai-settings-module-description">%s</p>',
+                esc_html($module->description())
+            );
+        }
+
+        $this->render_form($module_id);
     }
 
     /**
@@ -268,17 +469,28 @@ final class Settings_Page
             )
         );
 
-        $this->render_toolbar();
+        $tabs   = $this->tabs($collection);
+        $active = $this->current_tab($tabs);
 
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-        printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::SAVE_ACTION));
-        wp_nonce_field(self::SAVE_ACTION);
-        do_settings_sections(self::PAGE_SLUG);
-        submit_button(__('Save settings', 'ai-settings'));
-        echo '</form>';
+        $this->render_tabs($tabs, $active);
 
-        $this->render_model_section();
-        $this->render_import_export();
+        switch ($active) {
+            case self::TAB_MODELS:
+                $this->render_model_section();
+                break;
+
+            case self::TAB_EXPORT:
+                $this->render_import_export();
+                break;
+
+            case self::TAB_GENERAL:
+                $this->render_general_tab();
+                break;
+
+            default:
+                $this->render_module_tab($collection, $active);
+                break;
+        }
 
         echo '</div>';
     }
@@ -310,6 +522,7 @@ final class Settings_Page
         $result = (new Writer($this->plugin->collector()))->save($raw);
 
         $this->redirect(
+            $this->posted_tab($this->tab_list()),
             array(
                 'ai_settings_updated'  => $result['updated'],
                 'ai_settings_rejected' => count($result['rejected']),
@@ -336,7 +549,7 @@ final class Settings_Page
 
         $count = (new Writer($this->plugin->collector()))->set_all_enabled('enable' === $mode);
 
-        $this->redirect(array('ai_settings_bulk' => $count));
+        $this->redirect($this->posted_tab($this->tab_list()), array('ai_settings_bulk' => $count));
     }
 
     /**
@@ -516,7 +729,7 @@ final class Settings_Page
         $id        = '' === $context ? $field->name() : $field->name() . '-' . $context;
 
         printf(
-            '<select id="%s-provider" name="%s[%s][provider]">',
+            '<select id="%s-provider" name="%s[%s][provider]" data-ai-settings-provider>',
             esc_attr($id),
             esc_attr(self::INPUT_NAME),
             esc_attr($field->name())
@@ -550,22 +763,29 @@ final class Settings_Page
     /**
      * Renders the model input of a model override.
      *
-     * @param Field  $field The developer field.
-     * @param string $model The stored model id.
-     * @param string $context A suffix that keeps element ids unique.
+     * The input is what gets submitted. When the provider's models are known, the script in
+     * `assets/models.js` turns the field into a dropdown and leaves the input behind it for model
+     * ids the provider does not list.
+     *
+     * @param Field  $field      The developer field.
+     * @param string $model      The stored model id.
+     * @param string $context    A suffix that keeps element ids unique.
+     * @param string $capability The catalog to offer models from, or an empty string to leave the
+     *                           field as plain free text.
      * @return void
      */
-    private function render_model_input(Field $field, string $model, string $context = ''): void
+    private function render_model_input(Field $field, string $model, string $context = '', string $capability = ''): void
     {
         $id = '' === $context ? $field->name() : $field->name() . '-' . $context;
 
         printf(
-            '<input type="text" class="regular-text" id="%s-model" name="%s[%s][model]" value="%s" placeholder="%s" />',
+            '<input type="text" class="regular-text" id="%s-model" name="%s[%s][model]" value="%s" placeholder="%s"%s />',
             esc_attr($id),
             esc_attr(self::INPUT_NAME),
             esc_attr($field->name()),
             esc_attr($model),
-            esc_attr__('Model ID', 'ai-settings')
+            esc_attr__('Model ID', 'ai-settings'),
+            '' === $capability ? '' : ' data-ai-settings-model="' . esc_attr($capability) . '"'
         );
     }
 
@@ -650,12 +870,14 @@ final class Settings_Page
     /**
      * Renders the bulk switches and a link to the AI plugin's own screen.
      *
+     * @param string $tab The tab the form belongs to.
      * @return void
      */
-    private function render_toolbar(): void
+    private function render_toolbar(string $tab): void
     {
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="margin:1em 0;">';
         printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::BULK_ACTION));
+        printf('<input type="hidden" name="%s" value="%s" />', esc_attr(self::TAB_ARG), esc_attr($tab));
         wp_nonce_field(self::BULK_ACTION);
 
         printf(
@@ -687,9 +909,6 @@ final class Settings_Page
             Import_Export::EXPORT_ACTION
         );
 
-        echo '<hr />';
-        printf('<h2>%s</h2>', esc_html__('Import and export', 'ai-settings'));
-
         printf(
             '<p class="description">%s</p>',
             esc_html__(
@@ -706,6 +925,11 @@ final class Settings_Page
 
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" enctype="multipart/form-data">';
         printf('<input type="hidden" name="action" value="%s" />', esc_attr(Import_Export::IMPORT_ACTION));
+        printf(
+            '<input type="hidden" name="%s" value="%s" />',
+            esc_attr(self::TAB_ARG),
+            esc_attr(self::TAB_EXPORT)
+        );
         wp_nonce_field(Import_Export::IMPORT_ACTION);
 
         printf(
@@ -719,26 +943,6 @@ final class Settings_Page
     }
 
     /**
-     * Renders a module heading.
-     *
-     * The section it belongs to carries no fields of its own, so the heading is all it outputs.
-     *
-     * @param Module $module The module.
-     * @return void
-     */
-    private function render_module_intro(Module $module): void
-    {
-        printf('<h2 class="ai-settings-module">%s</h2>', esc_html($module->label()));
-
-        if ('' !== $module->description()) {
-            printf(
-                '<p class="ai-settings-module-description">%s</p>',
-                esc_html($module->description())
-            );
-        }
-    }
-
-    /**
      * Renders the model controls.
      *
      * Two ways to set a model override: push one provider and model onto every feature at once, or
@@ -748,8 +952,7 @@ final class Settings_Page
      */
     private function render_model_section(): void
     {
-        echo '<hr />';
-        printf('<h2>%s</h2>', esc_html__('Models', 'ai-settings'));
+        $collection = $this->plugin->collector()->collect();
 
         printf(
             '<p class="description">%s</p>',
@@ -759,28 +962,91 @@ final class Settings_Page
             )
         );
 
-        $this->render_model_bulk_form();
-        $this->render_model_table($this->plugin->collector()->collect());
+        $catalog = $this->model_catalog($collection);
+
+        $this->render_model_bulk_form($catalog);
+        $this->render_model_table($collection, $catalog);
+    }
+
+    /**
+     * Builds the model catalogs the pickers need.
+     *
+     * One catalog per capability a feature actually declares, plus the union of them all for the
+     * bulk form. The map is handed to the script; a capability that is missing from it is what
+     * leaves a field as plain free text.
+     *
+     * @param Collection $collection The collected configuration.
+     * @return array<string, array<string, array{name: string, models: array<string, string>}>> The
+     *         catalogs, keyed by capability, with {@see Model_Catalog::ALL} holding the union.
+     */
+    private function model_catalog(Collection $collection): array
+    {
+        $capabilities = array();
+
+        foreach ($collection->sections() as $section) {
+            if (!$section->is_master()) {
+                $capabilities[$this->plugin->collector()->capability_of($section->id())] = true;
+            }
+        }
+
+        $catalog = new Model_Catalog();
+        $map     = array();
+
+        foreach (array_intersect(Model_Catalog::CAPABILITIES, array_keys($capabilities)) as $capability) {
+            $models = $catalog->models($capability);
+
+            if (array() !== $models) {
+                $map[$capability] = $models;
+            }
+        }
+
+        if (array() === $map) {
+            return array();
+        }
+
+        $map[Model_Catalog::ALL] = $catalog->union(array_keys($map));
+
+        wp_add_inline_script(
+            'ai-settings-models',
+            'window.aiSettingsModelCatalog='
+            . wp_json_encode($map, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';'
+            . 'window.aiSettingsModelI18n='
+            . wp_json_encode(
+                array(
+                    'custom'  => __('Custom…', 'ai-settings'),
+                    'default' => __('(AI plugin default)', 'ai-settings'),
+                )
+            ) . ';',
+            'before'
+        );
+
+        return $map;
     }
 
     /**
      * Renders the form that applies one provider and model to every feature.
      *
+     * @param array<string, mixed> $catalog The model catalogs, empty when no provider reported any.
      * @return void
      */
-    private function render_model_bulk_form(): void
+    private function render_model_bulk_form(array $catalog): void
     {
         $providers = $this->plugin->collector()->providers();
 
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="ai-settings-model-bulk">';
         printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::MODEL_ACTION));
+        printf(
+            '<input type="hidden" name="%s" value="%s" />',
+            esc_attr(self::TAB_ARG),
+            esc_attr(self::TAB_MODELS)
+        );
         wp_nonce_field(self::MODEL_ACTION);
 
         printf(
             '<label for="ai-settings-bulk-provider">%s</label>',
             esc_html__('Provider', 'ai-settings')
         );
-        echo '<select id="ai-settings-bulk-provider" name="ai_settings_provider">';
+        echo '<select id="ai-settings-bulk-provider" name="ai_settings_provider" data-ai-settings-provider>';
         printf(
             '<option value="%s">%s</option>',
             esc_attr(self::PROVIDER_KEEP),
@@ -799,8 +1065,10 @@ final class Settings_Page
             esc_html__('Model', 'ai-settings')
         );
         printf(
-            '<input type="text" id="ai-settings-bulk-model" name="ai_settings_model" value="" placeholder="%s" /> ',
-            esc_attr__('Leave empty to keep', 'ai-settings')
+            '<input type="text" id="ai-settings-bulk-model" name="ai_settings_model" value="" placeholder="%s"%s /> ',
+            esc_attr__('Leave empty to keep', 'ai-settings'),
+            // The bulk form spans every feature, so it offers the union of the capabilities.
+            array() === $catalog ? '' : ' data-ai-settings-model="' . esc_attr(Model_Catalog::ALL) . '"'
         );
 
         printf('<span class="ai-settings-scope">%s</span>', esc_html__('Apply to', 'ai-settings'));
@@ -824,13 +1092,19 @@ final class Settings_Page
      * Field names match the main form's, so the submission goes through {@see Writer::save()} and
      * the same schema validation, with no separate write path.
      *
-     * @param Collection $collection The collected configuration.
+     * @param Collection           $collection The collected configuration.
+     * @param array<string, mixed> $catalog    The model catalogs, keyed by capability.
      * @return void
      */
-    private function render_model_table(Collection $collection): void
+    private function render_model_table(Collection $collection, array $catalog): void
     {
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
         printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::SAVE_ACTION));
+        printf(
+            '<input type="hidden" name="%s" value="%s" />',
+            esc_attr(self::TAB_ARG),
+            esc_attr(self::TAB_MODELS)
+        );
         wp_nonce_field(self::SAVE_ACTION);
 
         echo '<table class="widefat striped ai-settings-model-table"><thead><tr>';
@@ -867,11 +1141,19 @@ final class Settings_Page
             $provider = is_scalar($config['provider'] ?? null) ? (string) $config['provider'] : '';
             $model    = is_scalar($config['model'] ?? null) ? (string) $config['model'] : '';
 
+            // A feature whose capability carries no models — or one that uses none at all — keeps
+            // the plain text input.
+            $capability = $this->plugin->collector()->capability_of($section->id());
+
+            if (!isset($catalog[$capability])) {
+                $capability = '';
+            }
+
             echo '<tr>';
             printf('<td>%s</td><td>', esc_html($section->label()));
             $this->render_provider_select($field, $provider);
             echo '</td><td>';
-            $this->render_model_input($field, $model);
+            $this->render_model_input($field, $model, '', $capability);
             echo '</td></tr>';
         }
 
@@ -911,7 +1193,7 @@ final class Settings_Page
             'enabled' === $scope
         );
 
-        $this->redirect(array('ai_settings_models' => $count));
+        $this->redirect($this->posted_tab($this->tab_list()), array('ai_settings_models' => $count));
     }
 
     /**
@@ -1028,11 +1310,17 @@ final class Settings_Page
     /**
      * Redirects back to the settings screen with result flags.
      *
+     * @param string                    $tab  The tab to return to, or an empty string to leave the
+     *                                        screen on its default tab.
      * @param array<string, int|string> $args The query arguments to append.
      * @return void
      */
-    private function redirect(array $args): void
+    private function redirect(string $tab, array $args): void
     {
+        if ('' !== $tab) {
+            $args[self::TAB_ARG] = $tab;
+        }
+
         wp_safe_redirect(add_query_arg($args, $this->page_url()));
         exit;
     }

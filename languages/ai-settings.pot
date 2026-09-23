@@ -93,6 +93,9 @@ msgstr ""
 msgid "(AI plugin default)"
 msgstr ""
 
+msgid "Custom…"
+msgstr ""
+
 #: src/Admin/Settings_Page.php:568
 msgid "Model ID"
 msgstr ""
@@ -135,6 +138,14 @@ msgstr ""
 
 #: src/Admin/Settings_Page.php:672
 msgid "Open the AI plugin screen"
+msgstr ""
+
+#: src/Admin/Settings_Page.php:258
+msgid "General"
+msgstr ""
+
+#: src/Admin/Settings_Page.php:350
+msgid "Secondary menu"
 msgstr ""
 
 #: src/Admin/Settings_Page.php:691

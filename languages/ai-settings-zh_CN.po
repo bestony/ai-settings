@@ -94,6 +94,9 @@ msgstr "启用"
 msgid "(AI plugin default)"
 msgstr "（AI 插件默认）"
 
+msgid "Custom…"
+msgstr "自定义…"
+
 #: src/Admin/Settings_Page.php:568
 msgid "Model ID"
 msgstr "模型 ID"
@@ -137,6 +140,14 @@ msgstr "全部停用"
 #: src/Admin/Settings_Page.php:672
 msgid "Open the AI plugin screen"
 msgstr "打开 AI 插件设置页"
+
+#: src/Admin/Settings_Page.php:258
+msgid "General"
+msgstr "通用"
+
+#: src/Admin/Settings_Page.php:350
+msgid "Secondary menu"
+msgstr "二级菜单"
 
 #: src/Admin/Settings_Page.php:691
 msgid "Import and export"

@@ -20,7 +20,9 @@ The WordPress AI plugin spreads its settings across one switch per feature, a pr
 override per feature, and a handful of feature-specific options. This plugin puts all of them on a
 single screen, so you can see and change the whole configuration in one place.
 
-**Settings → AI Settings** groups the whole configuration by where a feature takes effect:
+**Settings → AI Settings** splits the whole configuration into tabs, one per group, plus a
+**General** tab (the master switch and the bulk switches), a **Models** tab and an
+**Import and export** tab. Features are grouped by where they take effect:
 
 * **Content generation** — title, excerpt, summary, resize and translation.
 * **Editing assistance** — type-ahead, editorial notes, and applying those notes.
@@ -29,7 +31,7 @@ single screen, so you can see and change the whole configuration in one place.
 * **Comments** — moderation and reply suggestions.
 * **Site administration** — abilities, request logging, connector approval and key encryption.
 
-Under each heading sits the feature's own on/off switch plus the options that feature adds — the
+Under each tab sits the feature's own on/off switch plus the options that feature adds — the
 taxonomy strategy and suggestion limit for Content Classification, guest moderation for Comment
 Moderation, or type-ahead's mode, delay, confidence, word limit and heading support. That last group
 is read by the AI plugin but never registered with WordPress, so no other screen can change it.
@@ -47,22 +49,28 @@ running is called out too, because code on the site is forcing it on.
 
 === Models ===
 
-A **Models** section under the feature list sets the per-feature provider and model override, two
-ways:
+The **Models** tab sets the per-feature provider and model override, two ways:
 
 * **Apply to all** pushes one provider and one model onto every feature at once, optionally limited
   to the features that are running. Set the provider to "Keep unchanged", or leave the model empty,
   to change only the other half.
 * The table below it edits each feature's override individually and saves them together.
 
+The model is a dropdown of the models the chosen provider offers, and it follows the provider you
+pick; with no provider set, the models are grouped by provider. Pick **Custom…** to type a model the
+list does not know. Without JavaScript the field is a plain text input, which is also what you get
+for a feature that uses no model.
+
 Leaving every override empty is the usual choice — the AI plugin then picks a model using its own
 preference order.
 
 === Bulk changes and moving settings between sites ===
 
-* **Enable everything** / **Disable everything** flip every switch, including the master one.
+* **Enable everything** / **Disable everything**, on the **General** tab, flip every switch,
+  including the master one.
 * **Export settings** downloads the same JSON the AI plugin's own export produces.
-* **Import settings** accepts that JSON. Only options the AI plugin registers are written, and a
+* **Import settings** accepts that JSON. Both buttons live on the **Import and export** tab. Only
+  options the AI plugin registers are written, and a
   value that fails the option's schema is rejected and reported rather than stored.
 
 Because both directions use the AI plugin's own endpoints, the files are interchangeable with the
@@ -74,7 +82,7 @@ API keys stay on **Settings → Connectors**. This plugin neither reads nor writ
 
 == Screenshots ==
 
-1. The full configuration list, grouped by feature.
+1. The configuration, split into tabs by feature group.
 
 == Installation ==
 
@@ -113,8 +121,8 @@ WordPress 7.0 or later — the Connectors API and the AI plugin both need it —
 
 = 0.1.0 =
 * Initial release.
-* One screen listing the AI plugin's master switch, every feature switch, every provider and model
-  override, and the options individual features add.
+* One screen, split into tabs, listing the AI plugin's master switch, every feature switch, every
+  provider and model override, and the options individual features add.
 * Enable everything / Disable everything.
 * Export and import the AI plugin's settings JSON.
 * Per-feature running state, with a note when a saved switch is not in effect.

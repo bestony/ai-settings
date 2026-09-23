@@ -253,13 +253,15 @@ final class Import_Export
     }
 
     /**
-     * Redirects back to the settings screen with result flags.
+     * Redirects back to the settings screen, on the import and export tab, with result flags.
      *
      * @param array<string, int|string> $args The query arguments to append.
      * @return void
      */
     private function redirect(array $args): void
     {
+        $args[Settings_Page::TAB_ARG] = Settings_Page::TAB_EXPORT;
+
         wp_safe_redirect(
             add_query_arg($args, admin_url('options-general.php?page=' . Settings_Page::PAGE_SLUG))
         );

@@ -427,6 +427,29 @@ final class Collector
     }
 
     /**
+     * Gets the capability a feature declared.
+     *
+     * The AI plugin files each feature under the capability its model has to serve —
+     * `text_generation`, `image_generation`, `vision`, or `none` for the features that use no model
+     * at all. It decides which models the feature's model override can be pointed at.
+     *
+     * @param string $feature_id The feature id.
+     * @return string The capability, defaulting to `text_generation` when the feature does not say.
+     */
+    public function capability_of(string $feature_id): string
+    {
+        $feature = $this->features()[$feature_id] ?? null;
+
+        if (!is_object($feature) || !method_exists($feature, 'get_capability')) {
+            return 'text_generation';
+        }
+
+        $capability = $feature->get_capability();
+
+        return is_string($capability) && '' !== $capability ? $capability : 'text_generation';
+    }
+
+    /**
      * Gets the AI plugin's registered options.
      *
      * @return array<string, array<string, mixed>> Option name to its registered arguments.
