@@ -74,7 +74,6 @@ final class Plugin
     public function setup(): void
     {
         add_action('wpai_register_features', array($this, 'capture_registry'));
-        add_action('init', array($this, 'load_textdomain'));
 
         (new Settings_Page($this))->register();
         (new Import_Export())->register();
@@ -96,26 +95,6 @@ final class Plugin
             $this->registry  = $registry;
             $this->collector = null;
         }
-    }
-
-    /**
-     * Loads the plugin's translations.
-     *
-     * WordPress loads translations on its own for plugins hosted on WordPress.org, which is what
-     * Plugin Check points at. This plugin is not distributed there, so it has to register the
-     * `languages/` directory it ships or the .mo files are never read — verified on WordPress
-     * 7.1.1, where dropping this call leaves the settings screen in English.
-     *
-     * @return void
-     */
-    public function load_textdomain(): void
-    {
-        // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound -- required for a plugin not hosted on WordPress.org; see above.
-        load_plugin_textdomain(
-            'ai-settings',
-            false,
-            dirname(plugin_basename(AISETTINGS_PLUGIN_FILE)) . '/languages'
-        );
     }
 
     /**

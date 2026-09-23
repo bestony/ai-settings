@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag, plugin header, stable tag, version constant and changelog agree
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          header=$(grep -m1 '^ \* Version:' bestonys-ai-settings.php | awk '{print $3}')
+          stable=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
+          # The version is written into the constant as well as the header, so both must agree.
+          constant=$(perl -ne "print \$1 if /define\('AISETTINGS_VERSION', '([\d.]+)'\)/" bestonys-ai-settings.php)
+          for pair in "header:$header" "stable tag:$stable" "version constant:$constant"; do
+            name="${pair%%:*}"
+            value="${pair#*:}"
+            if [ "$tag" != "$value" ]; then
+              echo "tag $tag != $name $value" >&2
+              exit 1
+            fi
+          done
+          # A release with no changelog entry publishes empty release notes, so fail instead.
+          if ! grep -qx "= ${tag} =" readme.txt; then
+            echo "readme.txt has no '= ${tag} =' changelog entry" >&2
+            exit 1
+          fi
+
+      - name: Verify the plugin's own self-check passes
+        run: |
+          set -euo pipefail
+          php scripts/selfcheck.php
+
+      - name: Build plugin zip
+        run: |
+          set -euo pipefail
+          slug=bestonys-ai-settings
+          zip="build/$slug-${GITHUB_REF_NAME}.zip"
+          mkdir -p build
+          # .gitattributes export-ignores scripts/, README.md and the CI files.
+          git archive --format=zip --prefix="$slug/" -o "$zip" HEAD
+          unzip -l "$zip" | grep -q "$slug/$slug.php"
+          unzip -l "$zip" | grep -q "$slug/assets/models.js"
+
+      - name: Compose release notes
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          {
+            awk -v v="$version" '$0 == "= " v " =" {found=1; next} found && /^= / {exit} found' readme.txt
+            echo
+            echo "**Commits**"
+            prev=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+            if [ -n "$prev" ]; then
+              git log --pretty='- %s (%h)' "$prev..$GITHUB_REF_NAME"
+            else
+              git log --pretty='- %s (%h)' "$GITHUB_REF_NAME"
+            fi
+          } > RELEASE_NOTES.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/*.zip \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file RELEASE_NOTES.md

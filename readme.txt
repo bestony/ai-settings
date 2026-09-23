@@ -1,9 +1,9 @@
-=== AI Settings ===
+=== Bestony's AI Settings ===
 Contributors:      bestony
 Tags:              ai, settings, experiments, connector
 Requires at least: 7.0
 Tested up to:      7.1
-Stable tag:        0.1.0
+Stable tag:        0.2.0
 Requires PHP:      7.4
 Requires Plugins:  ai
 License:           GPL-2.0-or-later
@@ -14,13 +14,13 @@ Edit every configuration option of the WordPress AI plugin from one screen.
 == Description ==
 
 This plugin edits the settings of the [AI plugin](https://cn.wordpress.org/plugins/ai/), which has
-to be installed and active — WordPress will not activate AI Settings without it.
+to be installed and active — WordPress will not activate Bestony's AI Settings without it.
 
 The WordPress AI plugin spreads its settings across one switch per feature, a provider and model
 override per feature, and a handful of feature-specific options. This plugin puts all of them on a
 single screen, so you can see and change the whole configuration in one place.
 
-**Settings → AI Settings** splits the whole configuration into tabs, one per group, plus a
+**Settings → Bestony's AI Settings** splits the whole configuration into tabs, one per group, plus a
 **General** tab (the master switch and the bulk switches), a **Models** tab and an
 **Import and export** tab. Features are grouped by where they take effect:
 
@@ -37,8 +37,8 @@ Moderation, or type-ahead's mode, delay, confidence, word limit and heading supp
 is read by the AI plugin but never registered with WordPress, so no other screen can change it.
 
 The list is discovered at runtime by reading the settings the AI plugin registers, so features added
-by a future AI plugin release appear on their own — filed under **Other** until AI Settings knows
-where they belong.
+by a future AI plugin release appear on their own — filed under **Other** until Bestony's AI Settings
+knows where they belong.
 
 === What this screen tells you that the AI plugin's own screen does not ===
 
@@ -86,9 +86,9 @@ API keys stay on **Settings → Connectors**. This plugin neither reads nor writ
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/ai-settings/`.
+1. Upload the plugin files to `/wp-content/plugins/bestonys-ai-settings/`.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Go to Settings → AI Settings.
+3. Go to Settings → Bestony's AI Settings.
 
 The WordPress AI plugin must be active; without it this screen reports that no options were found.
 
@@ -119,6 +119,12 @@ WordPress 7.0 or later — the Connectors API and the AI plugin both need it —
 
 == Changelog ==
 
+= 0.2.0 =
+* Renamed the plugin to **Bestony's AI Settings**: the plugin slug, folder and text domain are now
+  `bestonys-ai-settings`. Replace the plugin folder with the new zip and reactivate.
+* Removed the bundled translation files (`.po`, `.mo` and `.pot`) and the `load_plugin_textdomain()`
+  call. Translations are served by translate.wordpress.org.
+
 = 0.1.0 =
 * Initial release.
 * One screen, split into tabs, listing the AI plugin's master switch, every feature switch, every
@@ -128,6 +134,11 @@ WordPress 7.0 or later — the Connectors API and the AI plugin both need it —
 * Per-feature running state, with a note when a saved switch is not in effect.
 
 == Upgrade Notice ==
+
+= 0.2.0 =
+Renames the plugin, folder, slug and text domain to `bestonys-ai-settings`, and drops the bundled
+translations in favour of translate.wordpress.org. Replace the folder with the new zip and
+reactivate; the AI plugin's options and your API keys are untouched.
 
 = 0.1.0 =
 Initial release.

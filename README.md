@@ -1,11 +1,11 @@
-# AI Settings
+# Bestony's AI Settings
 
 Edit every configuration option of the [WordPress AI plugin](https://github.com/WordPress/ai) from a
 single screen.
 
 The AI plugin spreads its configuration across one switch per feature, a provider and model override
 per feature, and a handful of feature-specific options. This plugin discovers all of them at runtime
-and puts them on one page under **Settings → AI Settings**.
+and puts them on one page under **Settings → Bestony's AI Settings**.
 
 ## What it manages
 
@@ -42,7 +42,7 @@ classification — that says where a feature is registered but nothing about wha
 The mapping lives in `Collector::feature_modules()`; naming a feature there is all it takes to file
 it. A module holding at least one section becomes a tab, and `Collection::modules()` already drops
 the empty ones. Each tab registers its sections and fields under its own Settings API page id
-(`ai-settings-<tab>`), because `do_settings_sections()` renders every section registered for a page
+(`bestonys-ai-settings-<tab>`), because `do_settings_sections()` renders every section registered for a page
 and offers no way to render a single one.
 
 ## How it finds the options
@@ -96,14 +96,15 @@ plain text input it always was.
 * The [AI plugin](https://cn.wordpress.org/plugins/ai/), installed and active
 
 The AI plugin is declared as a dependency in the plugin header (`Requires Plugins: ai`), so WordPress
-enforces it: AI Settings cannot be activated while the AI plugin is missing or inactive, and the
-Plugins screen offers to install the AI plugin instead.
+enforces it: Bestony's AI Settings cannot be activated while the AI plugin is missing or inactive, and
+the Plugins screen offers to install the AI plugin instead.
 
 ## Development
 
 No build step, no dependencies. PSR-4 autoloading is a 20-line `src/autoload.php`, matching the other
 provider plugins in this repository's family. The one script is plain ES5 with no framework, loaded
-on the settings screen only.
+on the settings screen only. Translations are not shipped: they are served by translate.wordpress.org
+for hosts on the plugin directory, and WordPress loads them automatically since 4.6.
 
 ```
 src/

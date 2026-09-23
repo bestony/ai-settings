@@ -9,8 +9,8 @@
 ( function () {
 	'use strict';
 
-	var catalog = window.aiSettingsModelCatalog || {};
-	var i18n = window.aiSettingsModelI18n || {};
+	var catalog = window.bestonysAiSettingsModelCatalog || {};
+	var i18n = window.bestonysAiSettingsModelI18n || {};
 
 	var DEFAULT_LABEL = i18n.default || '(AI plugin default)';
 	var CUSTOM_LABEL = i18n.custom || 'Custom…';
@@ -115,21 +115,21 @@
 	 * @return {void}
 	 */
 	function enhance( input ) {
-		var key = input.getAttribute( 'data-ai-settings-model' );
+		var key = input.getAttribute( 'data-bestonys-ai-settings-model' );
 
 		if ( ! key || ! catalog[ key ] || ! Object.keys( catalog[ key ] ).length ) {
 			return;
 		}
 
 		var container = input.closest( 'tr, form' );
-		var providerSelect = container ? container.querySelector( '[data-ai-settings-provider]' ) : null;
+		var providerSelect = container ? container.querySelector( '[data-bestonys-ai-settings-provider]' ) : null;
 
 		if ( ! providerSelect ) {
 			return;
 		}
 
 		var select = document.createElement( 'select' );
-		select.className = 'ai-settings-model-picker';
+		select.className = 'bestonys-ai-settings-model-picker';
 		input.parentNode.insertBefore( select, input );
 
 		/**
@@ -198,7 +198,7 @@
 
 	function ready() {
 		Array.prototype.forEach.call(
-			document.querySelectorAll( '[data-ai-settings-model]' ),
+			document.querySelectorAll( '[data-bestonys-ai-settings-model]' ),
 			enhance
 		);
 	}

@@ -19,7 +19,7 @@ use AISettings\Config\Writer;
 use AISettings\Plugin;
 
 /**
- * Settings → AI Settings.
+ * Settings → Bestony's AI Settings.
  *
  * The AI plugin's options are registered in another plugin's settings group, so this screen renders
  * its own fields through the Settings API but saves through its own `admin-post` handler. That keeps
@@ -33,7 +33,7 @@ final class Settings_Page
      *
      * @var string
      */
-    public const PAGE_SLUG = 'ai-settings';
+    public const PAGE_SLUG = 'bestonys-ai-settings';
 
     /**
      * The `name` attribute wrapping every submitted field, e.g. `ai_settings[<option name>]`.
@@ -149,8 +149,8 @@ final class Settings_Page
     public function add_page(): void
     {
         add_options_page(
-            __('AI Settings', 'ai-settings'),
-            __('AI Settings', 'ai-settings'),
+            __("Bestony's AI Settings", 'bestonys-ai-settings'),
+            __("Bestony's AI Settings", 'bestonys-ai-settings'),
             self::CAPABILITY,
             self::PAGE_SLUG,
             array($this, 'render_page')
@@ -168,7 +168,7 @@ final class Settings_Page
         $links[] = sprintf(
             '<a href="%s">%s</a>',
             esc_url($this->page_url()),
-            esc_html__('Settings', 'ai-settings')
+            esc_html__('Settings', 'bestonys-ai-settings')
         );
 
         return $links;
@@ -237,22 +237,22 @@ final class Settings_Page
             return;
         }
 
-        wp_register_style('ai-settings', false, array(), AISETTINGS_VERSION);
-        wp_enqueue_style('ai-settings');
+        wp_register_style('bestonys-ai-settings', false, array(), AISETTINGS_VERSION);
+        wp_enqueue_style('bestonys-ai-settings');
         wp_add_inline_style(
-            'ai-settings',
-            '.ai-settings-module-description{margin:1em 0 .5em;color:#646970}'
-            . '.ai-settings-model-bulk{margin:1em 0;padding:1em;background:#fff;border:1px solid #c3c4c7}'
-            . '.ai-settings-model-bulk label{margin-right:.3em}'
-            . '.ai-settings-scope{margin-left:1em}'
-            . '.ai-settings-model-table{margin-top:1em}'
-            . '.ai-settings-model-table .ai-settings-model-module td{background:#f0f0f1;font-weight:600}'
-            . '.ai-settings-model-picker{min-width:12em;max-width:25em;vertical-align:middle}'
-            . '.ai-settings-model-picker+input{margin-left:.5em}'
+            'bestonys-ai-settings',
+            '.bestonys-ai-settings-module-description{margin:1em 0 .5em;color:#646970}'
+            . '.bestonys-ai-settings-model-bulk{margin:1em 0;padding:1em;background:#fff;border:1px solid #c3c4c7}'
+            . '.bestonys-ai-settings-model-bulk label{margin-right:.3em}'
+            . '.bestonys-ai-settings-scope{margin-left:1em}'
+            . '.bestonys-ai-settings-model-table{margin-top:1em}'
+            . '.bestonys-ai-settings-model-table .bestonys-ai-settings-model-module td{background:#f0f0f1;font-weight:600}'
+            . '.bestonys-ai-settings-model-picker{min-width:12em;max-width:25em;vertical-align:middle}'
+            . '.bestonys-ai-settings-model-picker+input{margin-left:.5em}'
         );
 
         wp_enqueue_script(
-            'ai-settings-models',
+            'bestonys-ai-settings-models',
             plugins_url('assets/models.js', AISETTINGS_PLUGIN_FILE),
             array(),
             AISETTINGS_VERSION,
@@ -272,14 +272,14 @@ final class Settings_Page
      */
     private function tabs(Collection $collection): array
     {
-        $tabs = array(self::TAB_GENERAL => __('General', 'ai-settings'));
+        $tabs = array(self::TAB_GENERAL => __('General', 'bestonys-ai-settings'));
 
         foreach ($collection->modules() as $id => $module) {
             $tabs[$id] = $module->label();
         }
 
-        $tabs[self::TAB_MODELS] = __('Models', 'ai-settings');
-        $tabs[self::TAB_EXPORT] = __('Import and export', 'ai-settings');
+        $tabs[self::TAB_MODELS] = __('Models', 'bestonys-ai-settings');
+        $tabs[self::TAB_EXPORT] = __('Import and export', 'bestonys-ai-settings');
 
         return $tabs;
     }
@@ -370,7 +370,7 @@ final class Settings_Page
 
         do_settings_sections($this->tab_page($tab));
 
-        submit_button(__('Save settings', 'ai-settings'));
+        submit_button(__('Save settings', 'bestonys-ai-settings'));
 
         echo '</form>';
     }
@@ -386,7 +386,7 @@ final class Settings_Page
     {
         printf(
             '<nav class="nav-tab-wrapper wp-clearfix" aria-label="%s">',
-            esc_attr__('Secondary menu', 'ai-settings')
+            esc_attr__('Secondary menu', 'bestonys-ai-settings')
         );
 
         foreach ($tabs as $id => $label) {
@@ -428,7 +428,7 @@ final class Settings_Page
 
         if (null !== $module && '' !== $module->description()) {
             printf(
-                '<p class="ai-settings-module-description">%s</p>',
+                '<p class="bestonys-ai-settings-module-description">%s</p>',
                 esc_html($module->description())
             );
         }
@@ -465,7 +465,7 @@ final class Settings_Page
             '<p class="description">%s</p>',
             esc_html__(
                 'These are the settings the WordPress AI plugin owns: its master switch, one switch per feature, and the per-feature provider, model and option overrides.',
-                'ai-settings'
+                'bestonys-ai-settings'
             )
         );
 
@@ -505,7 +505,7 @@ final class Settings_Page
         check_admin_referer(self::SAVE_ACTION);
 
         if (!current_user_can(self::CAPABILITY)) {
-            wp_die(esc_html__('You are not allowed to change these settings.', 'ai-settings'));
+            wp_die(esc_html__('You are not allowed to change these settings.', 'bestonys-ai-settings'));
         }
 
         /*
@@ -540,7 +540,7 @@ final class Settings_Page
         check_admin_referer(self::BULK_ACTION);
 
         if (!current_user_can(self::CAPABILITY)) {
-            wp_die(esc_html__('You are not allowed to change these settings.', 'ai-settings'));
+            wp_die(esc_html__('You are not allowed to change these settings.', 'bestonys-ai-settings'));
         }
 
         $mode = isset($_POST['ai_settings_mode'])
@@ -609,7 +609,7 @@ final class Settings_Page
             esc_attr(self::INPUT_NAME),
             esc_attr($field->name()),
             checked((bool) $value, true, false),
-            esc_html__('Enabled', 'ai-settings')
+            esc_html__('Enabled', 'bestonys-ai-settings')
         );
     }
 
@@ -729,13 +729,13 @@ final class Settings_Page
         $id        = '' === $context ? $field->name() : $field->name() . '-' . $context;
 
         printf(
-            '<select id="%s-provider" name="%s[%s][provider]" data-ai-settings-provider>',
+            '<select id="%s-provider" name="%s[%s][provider]" data-bestonys-ai-settings-provider>',
             esc_attr($id),
             esc_attr(self::INPUT_NAME),
             esc_attr($field->name())
         );
 
-        printf('<option value="">%s</option>', esc_html__('(AI plugin default)', 'ai-settings'));
+        printf('<option value="">%s</option>', esc_html__('(AI plugin default)', 'bestonys-ai-settings'));
 
         foreach ($providers as $provider_id => $label) {
             printf(
@@ -784,8 +784,8 @@ final class Settings_Page
             esc_attr(self::INPUT_NAME),
             esc_attr($field->name()),
             esc_attr($model),
-            esc_attr__('Model ID', 'ai-settings'),
-            '' === $capability ? '' : ' data-ai-settings-model="' . esc_attr($capability) . '"'
+            esc_attr__('Model ID', 'bestonys-ai-settings'),
+            '' === $capability ? '' : ' data-bestonys-ai-settings-model="' . esc_attr($capability) . '"'
         );
     }
 
@@ -807,7 +807,7 @@ final class Settings_Page
                 '<p class="description"><em>%s</em></p>',
                 esc_html__(
                     'Not registered with WordPress by the AI plugin — only this screen writes it.',
-                    'ai-settings'
+                    'bestonys-ai-settings'
                 )
             );
         }
@@ -827,16 +827,16 @@ final class Settings_Page
         if ($stored && !$section->effective()) {
             printf(
                 '<p class="description"><strong>%s</strong> %s</p>',
-                esc_html__('Saved as on, not running:', 'ai-settings'),
-                esc_html__('the master switch is off.', 'ai-settings')
+                esc_html__('Saved as on, not running:', 'bestonys-ai-settings'),
+                esc_html__('the master switch is off.', 'bestonys-ai-settings')
             );
         }
 
         if (!$stored && $section->effective()) {
             printf(
                 '<p class="description"><strong>%s</strong> %s</p>',
-                esc_html__('Saved as off, running:', 'ai-settings'),
-                esc_html__('code on this site forces it on.', 'ai-settings')
+                esc_html__('Saved as off, running:', 'bestonys-ai-settings'),
+                esc_html__('code on this site forces it on.', 'bestonys-ai-settings')
             );
         }
     }
@@ -861,8 +861,8 @@ final class Settings_Page
             '<p class="description">%s</p>',
             esc_html(
                 $section->effective()
-                    ? __('Currently running.', 'ai-settings')
-                    : __('Currently not running.', 'ai-settings')
+                    ? __('Currently running.', 'bestonys-ai-settings')
+                    : __('Currently not running.', 'bestonys-ai-settings')
             )
         );
     }
@@ -882,16 +882,16 @@ final class Settings_Page
 
         printf(
             '<button type="submit" class="button" name="ai_settings_mode" value="enable">%s</button> ',
-            esc_html__('Enable everything', 'ai-settings')
+            esc_html__('Enable everything', 'bestonys-ai-settings')
         );
         printf(
             '<button type="submit" class="button" name="ai_settings_mode" value="disable">%s</button> ',
-            esc_html__('Disable everything', 'ai-settings')
+            esc_html__('Disable everything', 'bestonys-ai-settings')
         );
         printf(
             '<a class="button" href="%s">%s</a>',
             esc_url(admin_url('options-general.php?page=ai-wp-admin')),
-            esc_html__('Open the AI plugin screen', 'ai-settings')
+            esc_html__('Open the AI plugin screen', 'bestonys-ai-settings')
         );
 
         echo '</form>';
@@ -913,14 +913,14 @@ final class Settings_Page
             '<p class="description">%s</p>',
             esc_html__(
                 'Export produces the same JSON as the AI plugin\'s own settings export, so the two are interchangeable. Import only writes options the AI plugin registers and rejects anything that fails its schema.',
-                'ai-settings'
+                'bestonys-ai-settings'
             )
         );
 
         printf(
             '<p><a class="button" href="%s">%s</a></p>',
             esc_url($export_url),
-            esc_html__('Export settings', 'ai-settings')
+            esc_html__('Export settings', 'bestonys-ai-settings')
         );
 
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" enctype="multipart/form-data">';
@@ -937,7 +937,7 @@ final class Settings_Page
             esc_attr(Import_Export::FILE_FIELD)
         );
 
-        submit_button(__('Import settings', 'ai-settings'), 'secondary', 'submit', false);
+        submit_button(__('Import settings', 'bestonys-ai-settings'), 'secondary', 'submit', false);
 
         echo '</form>';
     }
@@ -958,7 +958,7 @@ final class Settings_Page
             '<p class="description">%s</p>',
             esc_html__(
                 'Each feature can be pointed at a specific provider and model. Leaving every override empty keeps the AI plugin\'s own preference order, which is usually what you want.',
-                'ai-settings'
+                'bestonys-ai-settings'
             )
         );
 
@@ -1007,14 +1007,14 @@ final class Settings_Page
         $map[Model_Catalog::ALL] = $catalog->union(array_keys($map));
 
         wp_add_inline_script(
-            'ai-settings-models',
-            'window.aiSettingsModelCatalog='
+            'bestonys-ai-settings-models',
+            'window.bestonysAiSettingsModelCatalog='
             . wp_json_encode($map, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';'
-            . 'window.aiSettingsModelI18n='
+            . 'window.bestonysAiSettingsModelI18n='
             . wp_json_encode(
                 array(
-                    'custom'  => __('Custom…', 'ai-settings'),
-                    'default' => __('(AI plugin default)', 'ai-settings'),
+                    'custom'  => __('Custom…', 'bestonys-ai-settings'),
+                    'default' => __('(AI plugin default)', 'bestonys-ai-settings'),
                 )
             ) . ';',
             'before'
@@ -1033,7 +1033,7 @@ final class Settings_Page
     {
         $providers = $this->plugin->collector()->providers();
 
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="ai-settings-model-bulk">';
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="bestonys-ai-settings-model-bulk">';
         printf('<input type="hidden" name="action" value="%s" />', esc_attr(self::MODEL_ACTION));
         printf(
             '<input type="hidden" name="%s" value="%s" />',
@@ -1043,16 +1043,16 @@ final class Settings_Page
         wp_nonce_field(self::MODEL_ACTION);
 
         printf(
-            '<label for="ai-settings-bulk-provider">%s</label>',
-            esc_html__('Provider', 'ai-settings')
+            '<label for="bestonys-ai-settings-bulk-provider">%s</label>',
+            esc_html__('Provider', 'bestonys-ai-settings')
         );
-        echo '<select id="ai-settings-bulk-provider" name="ai_settings_provider" data-ai-settings-provider>';
+        echo '<select id="bestonys-ai-settings-bulk-provider" name="ai_settings_provider" data-bestonys-ai-settings-provider>';
         printf(
             '<option value="%s">%s</option>',
             esc_attr(self::PROVIDER_KEEP),
-            esc_html__('Keep unchanged', 'ai-settings')
+            esc_html__('Keep unchanged', 'bestonys-ai-settings')
         );
-        printf('<option value="">%s</option>', esc_html__('(AI plugin default)', 'ai-settings'));
+        printf('<option value="">%s</option>', esc_html__('(AI plugin default)', 'bestonys-ai-settings'));
 
         foreach ($providers as $id => $label) {
             printf('<option value="%s">%s</option>', esc_attr($id), esc_html($label));
@@ -1061,27 +1061,27 @@ final class Settings_Page
         echo '</select> ';
 
         printf(
-            '<label for="ai-settings-bulk-model">%s</label>',
-            esc_html__('Model', 'ai-settings')
+            '<label for="bestonys-ai-settings-bulk-model">%s</label>',
+            esc_html__('Model', 'bestonys-ai-settings')
         );
         printf(
-            '<input type="text" id="ai-settings-bulk-model" name="ai_settings_model" value="" placeholder="%s"%s /> ',
-            esc_attr__('Leave empty to keep', 'ai-settings'),
+            '<input type="text" id="bestonys-ai-settings-bulk-model" name="ai_settings_model" value="" placeholder="%s"%s /> ',
+            esc_attr__('Leave empty to keep', 'bestonys-ai-settings'),
             // The bulk form spans every feature, so it offers the union of the capabilities.
-            array() === $catalog ? '' : ' data-ai-settings-model="' . esc_attr(Model_Catalog::ALL) . '"'
+            array() === $catalog ? '' : ' data-bestonys-ai-settings-model="' . esc_attr(Model_Catalog::ALL) . '"'
         );
 
-        printf('<span class="ai-settings-scope">%s</span>', esc_html__('Apply to', 'ai-settings'));
+        printf('<span class="bestonys-ai-settings-scope">%s</span>', esc_html__('Apply to', 'bestonys-ai-settings'));
         printf(
             '<label><input type="radio" name="ai_settings_scope" value="all" checked="checked" /> %s</label>',
-            esc_html__('All features', 'ai-settings')
+            esc_html__('All features', 'bestonys-ai-settings')
         );
         printf(
             '<label><input type="radio" name="ai_settings_scope" value="enabled" /> %s</label> ',
-            esc_html__('Only features that are running', 'ai-settings')
+            esc_html__('Only features that are running', 'bestonys-ai-settings')
         );
 
-        submit_button(__('Apply to all', 'ai-settings'), 'secondary', 'submit', false);
+        submit_button(__('Apply to all', 'bestonys-ai-settings'), 'secondary', 'submit', false);
 
         echo '</form>';
     }
@@ -1107,10 +1107,10 @@ final class Settings_Page
         );
         wp_nonce_field(self::SAVE_ACTION);
 
-        echo '<table class="widefat striped ai-settings-model-table"><thead><tr>';
-        printf('<th>%s</th>', esc_html__('Feature', 'ai-settings'));
-        printf('<th>%s</th>', esc_html__('Provider', 'ai-settings'));
-        printf('<th>%s</th>', esc_html__('Model', 'ai-settings'));
+        echo '<table class="widefat striped bestonys-ai-settings-model-table"><thead><tr>';
+        printf('<th>%s</th>', esc_html__('Feature', 'bestonys-ai-settings'));
+        printf('<th>%s</th>', esc_html__('Provider', 'bestonys-ai-settings'));
+        printf('<th>%s</th>', esc_html__('Model', 'bestonys-ai-settings'));
         echo '</tr></thead><tbody>';
 
         $current_module = null;
@@ -1131,7 +1131,7 @@ final class Settings_Page
                 $module         = $collection->module($current_module);
 
                 printf(
-                    '<tr class="ai-settings-model-module"><td colspan="3">%s</td></tr>',
+                    '<tr class="bestonys-ai-settings-model-module"><td colspan="3">%s</td></tr>',
                     esc_html(null === $module ? $current_module : $module->label())
                 );
             }
@@ -1159,7 +1159,7 @@ final class Settings_Page
 
         echo '</tbody></table>';
 
-        submit_button(__('Save models', 'ai-settings'));
+        submit_button(__('Save models', 'bestonys-ai-settings'));
 
         echo '</form>';
     }
@@ -1174,7 +1174,7 @@ final class Settings_Page
         check_admin_referer(self::MODEL_ACTION);
 
         if (!current_user_can(self::CAPABILITY)) {
-            wp_die(esc_html__('You are not allowed to change these settings.', 'ai-settings'));
+            wp_die(esc_html__('You are not allowed to change these settings.', 'bestonys-ai-settings'));
         }
 
         $provider = isset($_POST['ai_settings_provider'])
@@ -1210,7 +1210,7 @@ final class Settings_Page
                     /* translators: %s: URL of the WordPress AI plugin on WordPress.org. */
                     __(
                         'No AI plugin options were found. Install and activate the <a href="%s">AI plugin</a>, then reload this page.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     esc_url('https://wordpress.org/plugins/ai/')
                 )
@@ -1234,7 +1234,7 @@ final class Settings_Page
                 esc_html(
                     sprintf(
                         /* translators: %d: number of settings. */
-                        _n('%d setting saved.', '%d settings saved.', $updated, 'ai-settings'),
+                        _n('%d setting saved.', '%d settings saved.', $updated, 'bestonys-ai-settings'),
                         $updated
                     )
                 )
@@ -1249,7 +1249,7 @@ final class Settings_Page
                 esc_html(
                     sprintf(
                         /* translators: %d: number of switches. */
-                        _n('%d switch updated.', '%d switches updated.', $bulk, 'ai-settings'),
+                        _n('%d switch updated.', '%d switches updated.', $bulk, 'bestonys-ai-settings'),
                         $bulk
                     )
                 )
@@ -1268,7 +1268,7 @@ final class Settings_Page
                             '%d model override updated.',
                             '%d model overrides updated.',
                             $models,
-                            'ai-settings'
+                            'bestonys-ai-settings'
                         ),
                         $models
                     )
@@ -1288,7 +1288,7 @@ final class Settings_Page
                             '%d setting was rejected because its value is invalid.',
                             '%d settings were rejected because their values are invalid.',
                             $rejected,
-                            'ai-settings'
+                            'bestonys-ai-settings'
                         ),
                         $rejected
                     )

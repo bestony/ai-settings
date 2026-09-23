@@ -1,18 +1,18 @@
 <?php
 
 /**
- * Plugin Name:       AI Settings
+ * Plugin Name:       Bestony's AI Settings
  * Plugin URI:        https://github.com/bestony/AI-Settings
  * Description:       Edit every configuration option of the WordPress AI plugin from a single screen.
  * Requires at least: 7.0
  * Requires PHP:      7.4
  * Requires Plugins:  ai
- * Version:           0.1.0
+ * Version:           0.2.0
  * Author:            Bestony
  * Author URI:        https://github.com/bestony
  * License:           GPL-2.0-or-later
  * License URI:       https://spdx.org/licenses/GPL-2.0-or-later.html
- * Text Domain:       ai-settings
+ * Text Domain:       bestonys-ai-settings
  *
  * @package AISettings
  */
@@ -30,7 +30,7 @@ if (!defined('ABSPATH')) {
  *
  * @var string
  */
-define('AISETTINGS_VERSION', '0.1.0');
+define('AISETTINGS_VERSION', '0.2.0');
 
 /**
  * Absolute path to the main plugin file.

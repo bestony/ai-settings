@@ -80,38 +80,38 @@ final class Collector
         return array(
             'generate' => new Module(
                 'generate',
-                __('Content generation', 'ai-settings'),
-                __('Generate or rework the body of a post.', 'ai-settings')
+                __('Content generation', 'bestonys-ai-settings'),
+                __('Generate or rework the body of a post.', 'bestonys-ai-settings')
             ),
             'assist'   => new Module(
                 'assist',
-                __('Editing assistance', 'ai-settings'),
-                __('Help while you are writing, in the block editor.', 'ai-settings')
+                __('Editing assistance', 'bestonys-ai-settings'),
+                __('Help while you are writing, in the block editor.', 'bestonys-ai-settings')
             ),
             'seo'      => new Module(
                 'seo',
-                __('SEO and taxonomy', 'ai-settings'),
-                __('Metadata, permalinks and taxonomy suggestions.', 'ai-settings')
+                __('SEO and taxonomy', 'bestonys-ai-settings'),
+                __('Metadata, permalinks and taxonomy suggestions.', 'bestonys-ai-settings')
             ),
             'media'    => new Module(
                 'media',
-                __('Media', 'ai-settings'),
-                __('Attachments and images.', 'ai-settings')
+                __('Media', 'bestonys-ai-settings'),
+                __('Attachments and images.', 'bestonys-ai-settings')
             ),
             'comments' => new Module(
                 'comments',
-                __('Comments', 'ai-settings'),
-                __('Moderation and replies.', 'ai-settings')
+                __('Comments', 'bestonys-ai-settings'),
+                __('Moderation and replies.', 'bestonys-ai-settings')
             ),
             'site'     => new Module(
                 'site',
-                __('Site administration', 'ai-settings'),
-                __('Behaviour administrators configure for the whole site.', 'ai-settings')
+                __('Site administration', 'bestonys-ai-settings'),
+                __('Behaviour administrators configure for the whole site.', 'bestonys-ai-settings')
             ),
             'other'    => new Module(
                 'other',
-                __('Other', 'ai-settings'),
-                __('Features this version of AI Settings does not know yet.', 'ai-settings')
+                __('Other', 'bestonys-ai-settings'),
+                __("Features this version of Bestony's AI Settings does not know yet.", 'bestonys-ai-settings')
             ),
         );
     }
@@ -217,42 +217,42 @@ final class Collector
             'type-ahead' => array(
                 array(
                     'field'       => 'mode',
-                    'label'       => __('Completion mode', 'ai-settings'),
+                    'label'       => __('Completion mode', 'bestonys-ai-settings'),
                     'kind'        => Field::KIND_SELECT,
                     'description' => __(
                         'Smart suggests after any pause; Word only after a sentence ends.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     'default'     => 'smart',
                     'choices'     => array(
                         array(
                             'value' => 'smart',
-                            'label' => __('Smart', 'ai-settings'),
+                            'label' => __('Smart', 'bestonys-ai-settings'),
                         ),
                         array(
                             'value' => 'word',
-                            'label' => __('Word', 'ai-settings'),
+                            'label' => __('Word', 'bestonys-ai-settings'),
                         ),
                     ),
                 ),
                 array(
                     'field'       => 'delay',
-                    'label'       => __('Trigger delay (ms)', 'ai-settings'),
+                    'label'       => __('Trigger delay (ms)', 'bestonys-ai-settings'),
                     'kind'        => Field::KIND_INTEGER,
                     'description' => __(
                         'How long typing must pause before a suggestion is requested.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     'default'     => 500,
                     'min'         => 200,
                 ),
                 array(
                     'field'       => 'confidence',
-                    'label'       => __('Minimum confidence (%)', 'ai-settings'),
+                    'label'       => __('Minimum confidence (%)', 'bestonys-ai-settings'),
                     'kind'        => Field::KIND_INTEGER,
                     'description' => __(
                         'Suggestions scoring below this are discarded.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     'default'     => 70,
                     'min'         => 0,
@@ -260,11 +260,11 @@ final class Collector
                 ),
                 array(
                     'field'       => 'max_words',
-                    'label'       => __('Maximum words', 'ai-settings'),
+                    'label'       => __('Maximum words', 'bestonys-ai-settings'),
                     'kind'        => Field::KIND_INTEGER,
                     'description' => __(
                         'Upper bound on the length of a suggestion.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     'default'     => 20,
                     'min'         => 1,
@@ -272,11 +272,11 @@ final class Collector
                 ),
                 array(
                     'field'       => 'headings',
-                    'label'       => __('Suggest while editing headings', 'ai-settings'),
+                    'label'       => __('Suggest while editing headings', 'bestonys-ai-settings'),
                     'kind'        => Field::KIND_BOOL,
                     'description' => __(
                         'Off by default: suggestions are limited to paragraph blocks.',
-                        'ai-settings'
+                        'bestonys-ai-settings'
                     ),
                     'default'     => false,
                 ),
@@ -331,10 +331,10 @@ final class Collector
         if (isset($registered[self::GLOBAL_OPTION])) {
             $sections[self::GLOBAL_SECTION] = new Section(
                 self::GLOBAL_SECTION,
-                __('AI plugin master switch', 'ai-settings'),
+                __('AI plugin master switch', 'bestonys-ai-settings'),
                 __(
                     'Every feature below needs this switch and its own switch to be on. A feature reports as inactive until both are enabled.',
-                    'ai-settings'
+                    'bestonys-ai-settings'
                 ),
                 '',
                 true
@@ -344,7 +344,7 @@ final class Collector
                 self::GLOBAL_OPTION,
                 self::GLOBAL_SECTION,
                 $registered[self::GLOBAL_OPTION],
-                __('Enable AI features', 'ai-settings'),
+                __('Enable AI features', 'bestonys-ai-settings'),
                 $metadata
             );
         }
@@ -730,11 +730,11 @@ final class Collector
     private function default_label(array $parsed): string
     {
         if ('toggle' === $parsed['role']) {
-            return __('Enable', 'ai-settings');
+            return __('Enable', 'bestonys-ai-settings');
         }
 
         if ('developer' === $parsed['role']) {
-            return __('Provider and model override', 'ai-settings');
+            return __('Provider and model override', 'bestonys-ai-settings');
         }
 
         return (string) ($parsed['field'] ?? '');

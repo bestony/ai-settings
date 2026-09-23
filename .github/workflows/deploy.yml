@@ -1,0 +1,54 @@
+name: Deploy to WordPress.org
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag, plugin header, stable tag, version constant and changelog agree
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          header=$(grep -m1 '^ \* Version:' bestonys-ai-settings.php | awk '{print $3}')
+          stable=$(grep -m1 '^Stable tag:' readme.txt | awk '{print $3}')
+          # The version is written into the constant as well as the header, so both must agree.
+          constant=$(perl -ne "print \$1 if /define\('AISETTINGS_VERSION', '([\d.]+)'\)/" bestonys-ai-settings.php)
+          for pair in "header:$header" "stable tag:$stable" "version constant:$constant"; do
+            name="${pair%%:*}"
+            value="${pair#*:}"
+            if [ "$tag" != "$value" ]; then
+              echo "tag $tag != $name $value" >&2
+              exit 1
+            fi
+          done
+          # A release with no changelog entry is a mistake, so fail instead.
+          if ! grep -qx "= ${tag} =" readme.txt; then
+            echo "readme.txt has no '= ${tag} =' changelog entry" >&2
+            exit 1
+          fi
+
+      - name: Verify the plugin's own self-check passes
+        run: |
+          set -euo pipefail
+          php scripts/selfcheck.php
+
+      # The slug has to exist in the WordPress.org plugin directory before this can push to it.
+      # Add ASSETS_DIR: .wordpress-org (and a tracked .wordpress-org/ directory) once there is
+      # artwork to publish.
+      - name: Deploy to WordPress.org
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: bestonys-ai-settings

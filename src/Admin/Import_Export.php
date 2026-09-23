@@ -83,7 +83,7 @@ final class Import_Export
         check_admin_referer(self::EXPORT_ACTION);
 
         if (!current_user_can(self::CAPABILITY)) {
-            wp_die(esc_html__('You are not allowed to export these settings.', 'ai-settings'));
+            wp_die(esc_html__('You are not allowed to export these settings.', 'bestonys-ai-settings'));
         }
 
         $response = $this->request(new \WP_REST_Request('GET', self::EXPORT_ROUTE));
@@ -93,7 +93,7 @@ final class Import_Export
         }
 
         $payload  = $response->get_data();
-        $filename = 'ai-settings-' . gmdate('Ymd-His') . '.json';
+        $filename = 'bestonys-ai-settings-' . gmdate('Ymd-His') . '.json';
 
         nocache_headers();
         header('Content-Type: application/json; charset=' . get_option('blog_charset'));
@@ -113,7 +113,7 @@ final class Import_Export
         check_admin_referer(self::IMPORT_ACTION);
 
         if (!current_user_can(self::CAPABILITY)) {
-            wp_die(esc_html__('You are not allowed to import these settings.', 'ai-settings'));
+            wp_die(esc_html__('You are not allowed to import these settings.', 'bestonys-ai-settings'));
         }
 
         $payload = $this->read_upload();
@@ -172,14 +172,14 @@ final class Import_Export
         if (UPLOAD_ERR_NO_FILE === $error) {
             return new \WP_Error(
                 'ai_settings_no_file',
-                __('Choose a settings JSON file to import.', 'ai-settings')
+                __('Choose a settings JSON file to import.', 'bestonys-ai-settings')
             );
         }
 
         if (UPLOAD_ERR_OK !== $error || !isset($file['tmp_name'])) {
             return new \WP_Error(
                 'ai_settings_upload_failed',
-                __('The upload failed. Please try again.', 'ai-settings')
+                __('The upload failed. Please try again.', 'bestonys-ai-settings')
             );
         }
 
@@ -188,7 +188,7 @@ final class Import_Export
         if ('' === $tmp_name || !is_uploaded_file($tmp_name)) {
             return new \WP_Error(
                 'ai_settings_not_uploaded',
-                __('The uploaded file could not be read.', 'ai-settings')
+                __('The uploaded file could not be read.', 'bestonys-ai-settings')
             );
         }
 
@@ -198,7 +198,7 @@ final class Import_Export
         if (false === $contents) {
             return new \WP_Error(
                 'ai_settings_unreadable',
-                __('The uploaded file could not be read.', 'ai-settings')
+                __('The uploaded file could not be read.', 'bestonys-ai-settings')
             );
         }
 
@@ -207,7 +207,7 @@ final class Import_Export
         if (!is_array($decoded) || !isset($decoded['version'])) {
             return new \WP_Error(
                 'ai_settings_invalid_payload',
-                __('That file is not an AI plugin settings export.', 'ai-settings')
+                __('That file is not an AI plugin settings export.', 'bestonys-ai-settings')
             );
         }
 
